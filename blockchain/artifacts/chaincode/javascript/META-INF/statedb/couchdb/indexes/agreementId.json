@@ -1,0 +1,6 @@
+{
+  "index": { "fields": ["hadithId"] },
+  "ddoc": "indexHadithId",
+  "name": "agreement_id",
+  "type": "json"
+}
