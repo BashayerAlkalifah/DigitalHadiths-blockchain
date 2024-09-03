@@ -1,0 +1,136 @@
+name: Calier test
+version: "2.0.0"
+
+caliper:
+  blockchain: fabric
+  sutOptions:
+    mutualTls: false
+
+info:
+  Version: 1.1.0
+  Size: 2 Orgs 2 peer
+  Orderer: Raft
+  Distribution: singel Host #Multi 
+  StateDB: goleveldb
+
+channels:
+  - channelName: hadithchannel
+    contracts:
+    - id: HadithChain
+
+organizations:
+  - mspid: Org1MSP
+    identities:
+      certificates:
+      - name: 'Admin@org1.example.com'
+        admin: true
+        clientPrivateKey:
+          path: '../../../blockchain/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/keystore/priv_sk'
+        clientSignedCert:
+          path: '../../../blockchain/artifacts/channel/crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp/signcerts/cert.pem'
+    connectionProfile:
+      path: '../../../api/connection-profiles/connection-org1.json'
+      discover: true
+  - mspid: Org2MSP
+    identities:
+      certificates:
+      - name: 'Admin@org2.example.com'
+        admin: true
+        clientPrivateKey:
+          path: '../../../blockchain/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/keystore/priv_sk'
+        clientSignedCert:
+          path: '../../../blockchain/artifacts/channel/crypto-config/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp/signcerts/cert.pem'
+    connectionProfile:
+      path: '../../../api/connection-profiles/connection-org2.json'
+      discover: true
+
+# name: Fabric
+# version: "2.0.0"
+
+# caliper:
+#   blockchain: fabric
+#   sutOptions:
+#     mutualTls: false
+
+# info:
+#   Version: 1.1.0
+#   Size: 2 Orgs
+#   Orderer: Raft
+#   Distribution: Single Host
+#   StateDB: CouchDB
+
+# channels:
+#   - channelName: hadithchannel
+#     contracts:
+#     - id: HadithChain
+#       contractID: HadithChain
+
+# organizations:
+#   - mspid: Org1MSP
+#     identities:
+#       certificates:
+#       - name: 'Admin@org1.example.com'
+#         admin: true
+#         clientPrivateKey:
+#           pem: |-
+#             -----BEGIN PRIVATE KEY-----
+#             MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQghiCB5Iygz8F7Vu33
+#             GiXPO7+FA3amLtKDUs1kW7bnFBmhRANCAARs+irjDcGCrbRBTGLxxvV8kod/RRhT
+#             n5eMFFy3d5lpjhof3nFhd7DeWABLn3ANU7g2pETDWBNVEXPIJY1nEtTc
+#             -----END PRIVATE KEY-----
+#         clientSignedCert:
+#           pem: |-
+#             -----BEGIN CERTIFICATE-----
+#             MIICpDCCAkugAwIBAgIUJIeOFBzc1j1D4RITBWeOVakYiDYwCgYIKoZIzj0EAwIw
+#             aDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK
+#             EwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt
+#             Y2Etc2VydmVyMB4XDTI0MDYyNDE3NTIwMFoXDTI1MDYyNDE3NTgwMFowYDELMAkG
+#             A1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl
+#             cmxlZGdlcjEOMAwGA1UECxMFYWRtaW4xEjAQBgNVBAMTCW9yZzFhZG1pbjBZMBMG
+#             ByqGSM49AgEGCCqGSM49AwEHA0IABGz6KuMNwYKttEFMYvHG9XySh39FGFOfl4wU
+#             XLd3mWmOGh/ecWF3sN5YAEufcA1TuDakRMNYE1URc8gljWcS1NyjgdowgdcwDgYD
+#             VR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFKvSIiMAKbXxkeMU
+#             s9bT7hJdDm4pMB8GA1UdIwQYMBaAFK5z/rFUVPBYURn6XVDLc0+QtXqnMBoGA1Ud
+#             EQQTMBGCD01CUGFsa2hzYmJzaGF5cjBbBggqAwQFBgcIAQRPeyJhdHRycyI6eyJo
+#             fi5BZmZpbGlhdGlvbiI6IiIsImhmLkVucm9sbG1lbnRJRCI6Im9yZzFhZG1pbiIs
+#             ImhmLlR5cGUiOiJhZG1pbiJ9fTAKBggqhkjOPQQDAgNHADBEAiALqqElNKyy5ekO
+#             x4U4qTlHMWu35lFJqyuSbiP6qaObZAIgNxOUDxDXcRIgtGl4NR+qJ9hO3cQhxBe8
+#             wflVBGrcpfQ=
+#             -----END CERTIFICATE-----
+#     connectionProfile:
+#       path: '../../../api/connection-profiles/connection-org1.json'
+#       discover: true
+#   - mspid: Org2MSP
+#     identities:
+#       certificates:
+#       - name: 'Admin@org2.example.com'
+#         admin: true
+#         clientPrivateKey:
+#           pem: |-
+#             -----BEGIN PRIVATE KEY-----
+#             MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgfUruGCC4mAAxPf1G
+#             OZX7veuntdaMBJTZ7967nUBvTiShRANCAAQY4uwbZBuo1FAHcXpkgLnZ9lB/5HP4
+#             FQDvuPgPTHiQFh7HJbPVJ2181stfz1Bgc6ZHlei3ii/WKTvCsKktBVeh
+#             -----END PRIVATE KEY-----
+#         clientSignedCert:
+#           pem: |-
+#             -----BEGIN CERTIFICATE-----
+#             MIICpTCCAkugAwIBAgIUbF9NoDwRy1F695z5uVJ47y0BsEAwCgYIKoZIzj0EAwIw
+#             aDELMAkGA1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQK
+#             EwtIeXBlcmxlZGdlcjEPMA0GA1UECxMGRmFicmljMRkwFwYDVQQDExBmYWJyaWMt
+#             Y2Etc2VydmVyMB4XDTI0MDYyNDE3NTIwMFoXDTI1MDYyNDE3NTgwMFowYDELMAkG
+#             A1UEBhMCVVMxFzAVBgNVBAgTDk5vcnRoIENhcm9saW5hMRQwEgYDVQQKEwtIeXBl
+#             cmxlZGdlcjEOMAwGA1UECxMFYWRtaW4xEjAQBgNVBAMTCW9yZzJhZG1pbjBZMBMG
+#             ByqGSM49AgEGCCqGSM49AwEHA0IABBji7BtkG6jUUAdxemSAudn2UH/kc/gVAO+4
+#             +A9MeJAWHscls9UnbXzWy1/PUGBzpkeV6LeKL9YpO8KwqS0FV6GjgdowgdcwDgYD
+#             VR0PAQH/BAQDAgeAMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFJuSRksR4o2yVkhU
+#             U/k1OegWkrHgMB8GA1UdIwQYMBaAFKIIusk7gzE93pfimC9FuCGW4nvKMBoGA1Ud
+#             EQQTMBGCD01CUGFsa2hzYmJzaGF5cjBbBggqAwQFBgcIAQRPeyJhdHRycyI6eyJo
+#             fi5BZmZpbGlhdGlvbiI6IiIsImhmLkVucm9sbG1lbnRJRCI6Im9yZzJhZG1pbiIs
+#             ImhmLlR5cGUiOiJhZG1pbiJ9fTAKBggqhkjOPQQDAgNIADBFAiEAhSH+geMWDS16
+#             2XQDsbFTw29YBqoH72lvhIg8QNSfd44CIENWuHB33nMEccv/24iRh0pxF5dVvU8m
+#             detPtbqND4w1
+#             -----END CERTIFICATE-----
+#     connectionProfile:
+#       path: '../../../api/connection-profiles/connection-org2.json'  
+#       discover: true
