@@ -7,9 +7,13 @@ const { getPagination } = require('../utils/pagination');
 const { getSuccessResponse } = require('../utils/Response');
 
 const addHadith = catchAsync(async (req, res) => {
-  const { user } = req.loggerInfo;
+  const { user: loggerUser } = req.loggerInfo;
   const fileMetadata = req.body.fileMetadata;
-    const result = await agreementService.addHadith(req.body, fileMetadata, user);
+    // Check if the user is a scholar
+  if (loggerUser.registrationType != 'scholar' && loggerUser.registrationType != 'StudentOfHadith') {
+      return res.status(403).send({ error: 'You are not authorized to perform this operation aa' });
+  }
+    const result = await agreementService.addHadith(req.body, fileMetadata, loggerUser);
     res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'Hadith created successfully', result));
   
 });
@@ -75,9 +79,22 @@ const getAllHadiths = catchAsync(async (req, res) => {
   console.log(filter);
 
   let data = await agreementService.queryAgreements(filter);
+  console.log('Query Data:', data);
+  // if (data?.data) {
+  //   data.data = data.data.map((elm) => elm.Record);
+  // }
   if (data?.data) {
-    data.data = data.data.map((elm) => elm.Record);
+    data.data = data.data.map((elm) => {
+      // Ensure that elm.Record is not undefined and is properly formatted
+      if (elm.Record) {
+        return { ...elm, record: elm.Record };
+      }
+      return elm;
+    });
   }
+
+  // Debugging: Print the full data object to ensure correct formatting
+  console.log('Formatted Data:', JSON.stringify(data, null, 2));
 
   res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Users fetched successfully', data));
 });
@@ -97,8 +114,16 @@ const getApprovalsByHadithId = catchAsync(async (req, res) => {
     // Query approvals by Hadith ID
     let responseData = await agreementService.queryApprovalsByHadithId(hadithId, user);
     // Map the data to extract the Record property
-    let data = responseData.data.map((elm) => elm.Record);
+    // let data = responseData.data.map((elm) => elm.Record);
 
+      let data = responseData.data?.map(elm => ({
+        CreateAt: elm.CreateAt,
+        CreateBy: elm.CreateBy,
+        OrgId: elm.OrgId,
+        RegistrationType: elm.RegistrationType,
+        Status: elm.Status,
+      })) || []
+  
     // Check if data is an array and has elements
     if (!Array.isArray(data) || data.length === 0) {
       return res.status(httpStatus.NOT_FOUND).json({ message: 'No approvals found for this Hadith ID' });

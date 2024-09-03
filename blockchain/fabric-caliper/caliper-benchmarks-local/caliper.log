@@ -1,0 +1,14 @@
+2024.07.29-20:23:09.282[90m debug[39m [caliper] [rateControl.js] 	Constructed a winston logger with the specified settings
+2024.07.29-20:23:09.660[32m info [39m [caliper] [cli-launch-manager] 	Binding specification is present, performing binding for "fabric:2.1.0"
+2024.07.29-20:23:09.666[33m warn [39m [caliper] [bind] 	Working directory not specified. Using "/hyperledger/caliper/workspace"
+2024.07.29-20:23:09.666[32m info [39m [caliper] [bind] 	User-provided arguments for npm: "-g"
+2024.07.29-20:23:09.666[32m info [39m [caliper] [bind] 	Binding for fabric@2.1.0. This might take some time...
+2024.07.29-20:23:09.667[32m info [39m [caliper] [bind] 	Using working directory: /hyperledger/caliper/workspace
+2024.07.29-20:23:09.667[32m info [39m [caliper] [bind] 	Calling npm with: install -g fabric-common@2.1.0 fabric-protos@2.1.0 fabric-network@2.1.0 fabric-ca-client@2.1.0
+2024.07.29-20:26:25.872[32m info [39m [caliper] [cli-launch-manager] 	Set workspace path: /hyperledger/caliper/workspace
+2024.07.29-20:26:25.877[32m info [39m [caliper] [cli-launch-manager] 	Set benchmark configuration path: /hyperledger/caliper/workspace/benchmarks/scenario/simple/pavan-v2.2/config.yaml
+2024.07.29-20:26:25.878[32m info [39m [caliper] [cli-launch-manager] 	Set network configuration path: /hyperledger/caliper/workspace/networks/fabric/pavan-v2.1/network-config_2.2.yaml
+2024.07.29-20:26:25.878[32m info [39m [caliper] [cli-launch-manager] 	Set SUT type: fabric
+2024.07.29-20:26:25.984[32m info [39m [caliper] [benchmark-validator] 	No observer specified, will default to `none`
+2024.07.29-20:26:25.985[32m info [39m [caliper] [caliper-engine] 	Starting benchmark flow
+2024.07.29-20:26:26.847[32m info [39m [caliper] [fabric-connector] 	Initializing gateway connector compatible with installed SDK: 2.1.0

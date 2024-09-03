@@ -448,9 +448,9 @@ createConnectionProdile() {
 }
 
 #removeOldCredentials
-# createcertificatesForOrg1
+createcertificatesForOrg1
 createCertificatesForOrg2
 createCretificatesForOrderer
-# createConnectionProdile
+createConnectionProdile
 
 

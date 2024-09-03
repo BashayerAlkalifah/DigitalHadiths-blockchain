@@ -7,7 +7,7 @@ const register = {
     email: Joi.string().required().email(),
     password: Joi.string().required().custom(password),
     name: Joi.string().required(),
-    registrationType: Joi.string().required().valid(REGISTRATION_TYPE.USER, REGISTRATION_TYPE.SCHOLAR),
+    registrationType: Joi.string().required().valid(REGISTRATION_TYPE.USER, REGISTRATION_TYPE.SCHOLAR, REGISTRATION_TYPE.STUDENTOFHADITH),
     orgId: Joi.number().required()
   }),
 };

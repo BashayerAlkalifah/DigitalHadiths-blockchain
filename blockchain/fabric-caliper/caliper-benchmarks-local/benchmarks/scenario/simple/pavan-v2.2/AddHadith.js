@@ -29,10 +29,10 @@ class AddHadithWorkload extends WorkloadModuleBase {
             let appraisedValue = Math.floor(Math.random() * (1000000 - 100 + 1) + 100) // random number between 100 and 1000000
 
 
-            const hashInput = `${currentHadith.Hadith}${currentHadith.TheFirstNarrator}${currentHadith.ReportedBy}${currentHadith.Hadith_number}${currentHadith.Source}${currentHadith.RulingOfTheReported}${roundArguments}${"rreeerreee"}${appraisedValue}`;
+            const hashInput = `${currentHadith.Hadith}${currentHadith.TheFirstNarrator}${currentHadith.ReportedBy}${currentHadith.Hadith_number}${currentHadith.Source}${currentHadith.RulingOfTheReported}${roundArguments}${"jjwwwj"}${appraisedValue}`;
             const id = crypto.createHash('sha256').update(hashInput).digest('hex');
 
-            // const dateTime = new Date();
+            const dateTime = new Date();
 
             const data = {
                 hadithId: id,
@@ -46,7 +46,7 @@ class AddHadithWorkload extends WorkloadModuleBase {
                 registrationType: user.registrationType,
                 hadithStatus: 'INPROGRESS',
                 createBy: user.email,
-                // createAt: dateTime,
+                createAt: dateTime,
             };
 
             await this.sutAdapter.sendRequests({

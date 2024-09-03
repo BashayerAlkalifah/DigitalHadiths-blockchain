@@ -40,7 +40,8 @@ const NETWORK_ARTIFACTS_DEFAULT ={
 
 const REGISTRATION_TYPE = {
   SCHOLAR: 'scholar',
-  USER: 'user'
+  USER: 'user',
+  STUDENTOFHADITH: 'StudentOfHadith'
 }
 
 const CHAINCODE_METHODS = {

@@ -53,6 +53,7 @@ const addHadith = async (hadithData, fileMetadata, user) => {
       createAt: dateTime,
       document: { ...fileMetadata }
     };
+    console.error(`data: ${JSON.stringify(data)}`);
 
     const contract = await getContractObject(
       orgName,
@@ -154,7 +155,7 @@ const approveAndRejectHadith = async (status, hadithId, user) => {
       gateway,
       client
     );
-
+    // JSON.stringify(hadithId)
     // Validate approvals and get Hadith status
     const hadithStatusBuffer = await contract.evaluateTransaction('validateApprovals', hadithId, JSON.stringify(user));
     const hadithStatusAscii = hadithStatusBuffer.toString();
@@ -215,8 +216,11 @@ const rejectHadith = async (hadithId, user) => {
       gateway,
       client
     );
+    
+    // JSON.stringify(hadithId)
+   // JSON.stringify(user.email), JSON.stringify("true")
     // Submit transaction to delete Hadith
-    await contract.submitTransaction('deleteHadith', JSON.stringify(hadithId) , JSON.stringify(user.email));
+    await contract.submitTransaction('deleteHadith',hadithId, user.email, "true");
     return { message: 'This Hadith has been rejected by a scholar. It has been removed from the blockchain.' };
 
   } catch (error) {
@@ -262,6 +266,7 @@ const approveAndRejectHadithForUpdateHadith = async (status, hadithId, user) => 
     const hadithStatusAscii = hadithStatusBuffer.toString();
     const hadithStatus = hadithStatusAscii.split(',').map(Number).map(charCode => String.fromCharCode(charCode)).join('');
     const dateTime = new Date();
+    console.log("hadithStatus" , hadithStatus)
 
     // Prepare data for the transaction
     const data = {
@@ -329,6 +334,7 @@ const queryAgreements = async (filter) => {
     } else {
       query = `{\"selector\":{}}`;
     }
+    console.log('query--------------', query);
     let data = await getAgreementsWithPagination(
       query,
       filter.pageSize,
@@ -338,13 +344,16 @@ const queryAgreements = async (filter) => {
       NETWORK_ARTIFACTS_DEFAULT.CHANNEL_NAME,
       NETWORK_ARTIFACTS_DEFAULT.CHAINCODE_NAME
     );
-  
+    
     return data;
   } catch (error) {
     console.log('error--------------', error);
 
   }
 };
+
+
+
 /**
  * Query for users
  * @param {Object} filter - Mongo filter
@@ -372,6 +381,7 @@ const queryApprovalsByHadithId = async (hadithId, user) => {
 
     // Convert Uint8Array to string and parse as JSON
       data = JSON.parse(new TextDecoder('utf8').decode(data));
+      console.warn(`Error querying approvals by Hadith ID: ${data}`);
 
     // Remove Hadith details from each approval
     data = data.map(approval => {
@@ -387,7 +397,10 @@ const queryApprovalsByHadithId = async (hadithId, user) => {
           hadithStatus,
           ...filteredRecord
         } = approval.Record;
+
+
         return { ...approval, Record: filteredRecord };
+      
       }
       console.warn('Approval or Record is undefined:', approval);
       return approval; // In case approval or Record is undefined, return as is
@@ -406,6 +419,8 @@ const queryApprovalsByHadithId = async (hadithId, user) => {
     }
   }
 };
+
+
 const queryHistoryById = async (id, user) => {
   let gateway;
   let client
@@ -419,10 +434,26 @@ const queryHistoryById = async (id, user) => {
       gateway,
       client
     );
+    // let result = await contract.submitTransaction('getHadithHistory', id);
+    // result = JSON.parse(utf8Decoder.decode(result));
+    // console.log("result" , result)
+
+    // return {
+    //   hadithHistory: result.results?.map(elm => ({
+    //     txId: elm.TxId,
+    //     Action: elm.Action,
+    //     timeStamp: elm.Timestamp ? new Date(elm.Timestamp).getTime() : null,
+    //     DeletedBy: elm.DeletedBy,
+    //     ...elm.Value,
+    //   })) || [],
+    //   approvals: result.approvalResults?.map(elm => ({
+    //     ...elm.Record,
+    //     key: elm.Key,
+    //   })) || []
+    // };
     let result = await contract.submitTransaction('getHadithHistory', id);
     result = JSON.parse(utf8Decoder.decode(result));
     console.log("result" , result)
-
     return {
       hadithHistory: result.results?.map(elm => ({
         txId: elm.TxId,
@@ -432,8 +463,12 @@ const queryHistoryById = async (id, user) => {
         ...elm.Value,
       })) || [],
       approvals: result.approvalResults?.map(elm => ({
-        ...elm.Record,
-        key: elm.Key,
+        CreateAt: elm.CreateAt,
+        CreateBy: elm.CreateBy,
+        HadithId: elm.HadithId,
+        OrgId: elm.OrgId,
+        RegistrationType: elm.RegistrationType,
+        Status: elm.Status,
       })) || []
     };
   } catch (error) {
@@ -463,13 +498,50 @@ const queryHadithById = async (id, user) => {
       client
     );
     let result = await contract.submitTransaction('getHadithByID', id);
+      
+    // Decode the Uint8Array into a string
     result = JSON.parse(utf8Decoder.decode(result));
+    // let approvals = await queryApprovalsByHadithId(id , user)
+    // result.approvals = approvals?.data?.map(elm => elm.Record) || []
+    
+    let approvals = await queryApprovalsByHadithId(id, user);
+    // Safely map `approvals.data` to get records
+    console.warn('approvals:', approvals);
 
+    // let approvalsRecords = approvals.data.map(elm => elm.Record).filter(record => record !== undefined);
+    // console.warn('approvalsRecords:', approvalsRecords);
+   // Safely map `approvals.data` to get only defined records
 
+// Map the `approvals.data` to the desired format, and include only records with non-empty CreateAt and HadithId
 
-    let approvals = await queryApprovalsByHadithId(id , user)
-    result.approvals = approvals?.data?.map(elm => elm.Record) || []
-    return result;
+ return {
+  hadithDetails: {
+    hadithId: result.hadithId,
+    Hadith: result.Hadith,
+    TheFirstNarrator: result.TheFirstNarrator,
+    ReportedBy: result.ReportedBy,
+    RulingOfTheReported: result.RulingOfTheReported,
+    PageOrNumber: result.PageOrNumber,
+    orgId: result.orgId,
+    registrationType: result.registrationType,
+    hadithStatus: result.hadithStatus,
+    createBy: result.createBy,
+    createAt: result.createAt,
+    previousHadithId: result.previousHadithId
+  },
+  approvals: approvals.data?.map(elm => ({
+    CreateAt: elm.CreateAt,
+    CreateBy: elm.CreateBy,
+    HadithId: elm.HadithId,
+    OrgId: elm.OrgId,
+    RegistrationType: elm.RegistrationType,
+    Status: elm.Status,
+  })) || []
+  };
+    // Add the results to approvals
+    // result.approvals = approvalsRecords;
+    // return result;
+  
   } catch (error) {
     // Extract and log detailed error message
     const errorMessage = error.message || 'Unknown error occurred';

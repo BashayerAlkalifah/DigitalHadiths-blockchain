@@ -185,7 +185,6 @@ const getAgreementsWithPagination = async (queryString, pageSize, bookmark, orgN
   let client;
   try {
 
-  
     const contract = await getContractObject(orgName, user, channelName, contractName, gateway, client);
      let  result = await contract.submitTransaction('getDataWithPagination', queryString, pageSize.toString(), bookmark);
 

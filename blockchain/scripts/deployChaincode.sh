@@ -22,11 +22,6 @@ export GOPATH=/Users/bshayralkhlyfh/go
 # Add GOPATH binary directory to PATH
 export PATH=$PATH:$GOPATH/bin
 
-# Debugging: Print the PATH to verify
-echo "Current PATH: $PATH"
-
-# Verify Go installation
-go version
 
 
 
@@ -41,9 +36,9 @@ presetup() {
 #presetup
 
 CHANNEL_NAME="hadithchannel"
-CC_RUNTIME_LANGUAGE="golang"
-VERSION="1"
-SEQUENCE=1
+CC_RUNTIME_LANGUAGE="golang" #golang #node
+VERSION="10"
+SEQUENCE=10
 CC_SRC_PATH="../artifacts/chaincode/golang"
 CC_NAME="HadithChain"
 CC_POLICY="AND('Org1MSP.peer','Org2MSP.peer')"
@@ -174,28 +169,16 @@ chaincodeInvoke() {
         --tls $CORE_PEER_TLS_ENABLED \
         --cafile $ORDERER_CA \
         -C $CHANNEL_NAME -n ${CC_NAME}  \
-        --peerAddresses localhost:1052 --tlsRootCertFiles $PEER1_ORG1_CA \
-        --peerAddresses localhost:2052 --tlsRootCertFiles $PEER1_ORG2_CA \
-        -c '{"function": "HadithExists","Args":["{\"id\":\"a090d7d04142eba08f2c8ba930f1ed4f371ceba6ae66354da72f09bc36963a2a\"}"]}'
+        --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
+        --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA \
+        -c '{"function": "queryApprovalsByHadithId","Args":["963dea06e450d696860e37a56edbb4a6569e9ee7f5a5df6b2196cc9fbae583a0"]}'
 
 }
 #  chaincodeInvoke
 #http://localhost:5984/_utils/
 
-chaincodeInvokeABAC() {
-    setGlobals 1
 
-    # Create Car
-    peer chaincode invoke -o localhost:7050 \
-        --ordererTLSHostnameOverride orderer.example.com \
-        --tls $CORE_PEER_TLS_ENABLED \
-        --cafile $ORDERER_CA \
-        -C $CHANNEL_NAME -n ${CC_NAME}  \
-        --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
-        --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA   \
-        -c '{"function": "HadithExists","Args":["{\"id\":\"a090d7d04142eba08f2c8ba930f1ed4f371ceba6ae66354da72f09bc36963a2a\"}"]}'
 
-}
 
 chaincodeQuery() {
     setGlobals 2

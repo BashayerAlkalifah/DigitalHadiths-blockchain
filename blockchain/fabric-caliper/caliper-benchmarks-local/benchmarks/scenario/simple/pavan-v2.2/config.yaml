@@ -8,7 +8,7 @@ test:
   description: Benchmark for Hyperledger Fabric network using `AddHadith` function.
   workers:
     type: local
-    number: 3
+    number: 2
   rounds:
     - label: Round 1 - Add Hadith
       txNumber: 1000

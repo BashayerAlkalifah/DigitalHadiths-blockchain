@@ -30,3 +30,6 @@ cd ../scripts
 # docker system prune -a
 
 #cd ../../app/ && nodemon app
+
+#sudo lsof -i :3000
+#kill -9 17719

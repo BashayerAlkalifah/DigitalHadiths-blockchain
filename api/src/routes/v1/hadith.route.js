@@ -19,17 +19,17 @@ router
 router
   .route('/history/:id')
   .get(auth, validate(hadithValidation.getHadithApprovals), hadithController.getHistoryById);
-
+  
 router
   .route('/update')
-  .post(auth, uploadFileToPinata, hadithController.updateHadith)  
+  .post(auth, uploadFileToPinata, validate(hadithValidation.updateHadith), hadithController.updateHadith)  
 router
   .route('/update/approvals/:id')
   .post(auth, validate(hadithValidation.approveHadith), hadithController.approveAndRejectHadithForUpdateHadith)
 
 router
   .route('/')
-  .post(auth, uploadFileToPinata, hadithController.addHadith )
+  .post(auth, uploadFileToPinata,validate(hadithValidation.addHadith), hadithController.addHadith )
   .get(auth, hadithController.getAllHadiths);
 
 

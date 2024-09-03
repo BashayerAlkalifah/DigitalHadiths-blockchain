@@ -39,14 +39,14 @@ joinChannel(){
     setGlobals 1
     peer channel join -b ../channel-artifacts/${CHANNEL_NAME}.block
     
-    setGlobals 3
-    peer channel join -b ../channel-artifacts/${CHANNEL_NAME}.block
+    # setGlobals 3
+    # peer channel join -b ../channel-artifacts/${CHANNEL_NAME}.block
 
     setGlobals 2
     peer channel join -b ../channel-artifacts/${CHANNEL_NAME}.block
     
-    setGlobals 4
-    peer channel join -b ../channel-artifacts/${CHANNEL_NAME}.block
+    # setGlobals 4
+    # peer channel join -b ../channel-artifacts/${CHANNEL_NAME}.block
     
 }
 
