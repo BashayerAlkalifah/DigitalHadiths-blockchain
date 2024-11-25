@@ -11,10 +11,10 @@ const addHadith = catchAsync(async (req, res) => {
   const fileMetadata = req.body.fileMetadata;
     // Check if the user is a scholar
   if (loggerUser.registrationType != 'scholar' && loggerUser.registrationType != 'StudentOfHadith') {
-      return res.status(403).send({ error: 'You are not authorized to perform this operation aa' });
+    return res.status(403).send({ error: 'أنت غير مصرح لك بتنفيذ هذه العملية.' });
   }
     const result = await agreementService.addHadith(req.body, fileMetadata, loggerUser);
-    res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'Hadith created successfully', result));
+    res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'تم إضافة الحديث بنجاح', result));
   
 });
 
@@ -24,11 +24,11 @@ const updateHadith = catchAsync(async (req, res) => {
   const fileMetadata = req.body.fileMetadata;
   // Check if the user is a scholar
   if (user.registrationType !='scholar') {
-    return res.status(403).send({ error: 'Only scholars can update Hadith' });
+    return res.status(403).send({ error: 'يمكن فقط للعلماء طلب تحديث الحديث' });
   }
 
   const result = await agreementService.updateHadith(req.body, fileMetadata, user);
-  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'Hadith created successfully', result));
+  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'تم ارسال طلب تحديث الحديث بنجاح', result));
 });
 
 
@@ -37,13 +37,13 @@ const approveAndRejectHadith = catchAsync(async (req, res) => {
 
   // Check if the user is a scholar
   if (loggerUser.registrationType != 'scholar') {
-      return res.status(403).send({ error: 'Only scholars can approve Hadith' });
+    return res.status(403).send({ error: 'يمكن فقط للعلماء الموافقة أو الرفض على الحديث.' });
   }
 
   let status = req.body;
   let hadithId = req.params.id;
   const result = await agreementService.approveAndRejectHadith(status, hadithId, loggerUser);
-  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'approval submitted successfully', result));
+  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'تم تقديم الموافقة بنجاح', result));
 });
 
 
@@ -52,12 +52,12 @@ const approveAndRejectHadithForUpdateHadith = catchAsync(async (req, res) => {
 
   // Check if the user is a scholar
   if (loggerUser.registrationType != 'scholar') {
-      return res.status(403).send({ error: 'Only scholars can approve Hadith' });
+      return res.status(403).send({ error: 'يمكن فقط للعلماء القيام بذلك' });
   }
   let status = req.body;
   let hadithId = req.params.id;
   const result = await agreementService.approveAndRejectHadithForUpdateHadith(status, hadithId, loggerUser);
-  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'approval submitted successfully', result));
+  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'تم تقديم الموافقة بنجاح', result));
 });
 
 
@@ -79,7 +79,6 @@ const getAllHadiths = catchAsync(async (req, res) => {
   console.log(filter);
 
   let data = await agreementService.queryAgreements(filter);
-  console.log('Query Data:', data);
   // if (data?.data) {
   //   data.data = data.data.map((elm) => elm.Record);
   // }
@@ -96,14 +95,14 @@ const getAllHadiths = catchAsync(async (req, res) => {
   // Debugging: Print the full data object to ensure correct formatting
   console.log('Formatted Data:', JSON.stringify(data, null, 2));
 
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Users fetched successfully', data));
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, '', data));
 });
 
 const getHistoryById = catchAsync(async (req, res) => {
   const { id } = req.params;
   const { user } = req.loggerInfo;
   const data = await agreementService.queryHistoryById(id, user);
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Hadith history fetched successfully', data));
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم جلب تاريخ الحديث بنجاح', data));
 });
 
 const getApprovalsByHadithId = catchAsync(async (req, res) => {
@@ -126,14 +125,13 @@ const getApprovalsByHadithId = catchAsync(async (req, res) => {
   
     // Check if data is an array and has elements
     if (!Array.isArray(data) || data.length === 0) {
-      return res.status(httpStatus.NOT_FOUND).json({ message: 'No approvals found for this Hadith ID' });
+      return res.status(httpStatus.NOT_FOUND).json({ message: 'لم يتم العثور على موافقات لهذا المعرف الخاص بالحديث' });
     }
 
     // Send the successful response
-    res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Users fetched successfully', { approvals: data }));
+    res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم جلب الموافقات او الرفض بنجاح ', { approvals: data }));
   } catch (error) {
-    console.error('Error in getApprovalsByHadithId:', error);
-    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'An error occurred while fetching approvals' });
+    res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: 'حدث خطأ أثناء جلب الموافقات' });
   }
 });
 
@@ -146,15 +144,15 @@ const getHadithById = catchAsync(async (req, res) => {
     data.approvals = data.approvals.filter(approval => !approval.Hadith);
   }
 
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Hadith fetched successfully', data));
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم جلب الحديث بنجاح', data));
 });
 
 const getUser = catchAsync(async (req, res) => {
   const user = await userService.getUserById(req.params.userId);
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'المستخدم غير موجود');
   }
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'User fetched successfully', user));
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم جلب المستخدم بنجاح', user));
 });
 
 const updateUser = catchAsync(async (req, res) => {

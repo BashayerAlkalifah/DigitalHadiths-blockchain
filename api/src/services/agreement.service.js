@@ -71,9 +71,8 @@ const addHadith = async (hadithData, fileMetadata, user) => {
     const detailedMessage = (error.details && error.details.length > 0)
       ? error.details[0].message.replace(/chaincode response 500,/i, '').trim()
       : 'No additional details';
-    console.error(`Error adding Hadith: ${errorMessage}, Details: ${detailedMessage}`);
-    throw new Error(`Error adding Hadith: ${detailedMessage}`);
-  } finally {
+      throw new Error(`خطأ في إضافة الحديث: ${detailedMessage}`);
+    } finally {
     if (gateway) gateway.close();
     if (client) client.close();
   }
@@ -123,7 +122,7 @@ const updateHadith = async (hadithData, fileMetadata, user) => {
       ? error.details[0].message.replace(/chaincode response 500,/i, '').trim()
       : 'No additional details';
     console.error(`Error updating Hadith: ${errorMessage}, Details: ${detailedMessage}`);
-    throw new Error(`Error updating Hadith: ${detailedMessage}`);
+    throw new Error(`خطأ في تحديث الحديث: ${detailedMessage}`);
   } finally {
     if (gateway) gateway.close();
     if (client) client.close();
@@ -187,8 +186,7 @@ const approveAndRejectHadith = async (status, hadithId, user) => {
     }
     // Remove "chaincode response 500," from the error message
       detailedMessage = detailedMessage.replace(/chaincode response 500,/i, '').trim();
-      console.error(`Error approving Hadith: ${errorMessage}, Details: ${detailedMessage}`);
-    throw new Error(`Error approving Hadith:, Details: ${detailedMessage}`);
+    throw new Error(`${detailedMessage}`);
   } finally {
     // Close resources
     if (gateway) {
@@ -216,12 +214,12 @@ const rejectHadith = async (hadithId, user) => {
       gateway,
       client
     );
-    
+    //,hadithId, user.email, "true"
     // JSON.stringify(hadithId)
    // JSON.stringify(user.email), JSON.stringify("true")
     // Submit transaction to delete Hadith
-    await contract.submitTransaction('deleteHadith',hadithId, user.email, "true");
-    return { message: 'This Hadith has been rejected by a scholar. It has been removed from the blockchain.' };
+    await contract.submitTransaction('deleteHadith',JSON.stringify(hadithId), JSON.stringify(user.email));
+    return { message: 'تمت إزالة الحديث من قاعدة بيانات الحالة العالمية.' };
 
   } catch (error) {
     // Extract and log detailed error message
@@ -233,8 +231,8 @@ const rejectHadith = async (hadithId, user) => {
     // Remove "chaincode response 500," from the error message
       detailedMessage = detailedMessage.replace(/chaincode response 500,/i, '').trim();
       console.error(`Error rejecting Hadith: ${errorMessage}, Details: ${detailedMessage}`);
-      throw new Error(`Error rejecting Hadith:, Details: ${detailedMessage}`);
-  } finally {
+      throw new Error(`خطأ في رفض الحديث، التفاصيل: ${detailedMessage}`);
+    } finally {
     // Close resources
     if (gateway) {
       gateway.close();
@@ -294,8 +292,8 @@ const approveAndRejectHadithForUpdateHadith = async (status, hadithId, user) => 
     // Remove "chaincode response 500," from the error message
       detailedMessage = detailedMessage.replace(/chaincode response 500,/i, '').trim();
       console.error(`Error approving Hadith: ${errorMessage}, Details: ${detailedMessage}`);
-    throw new Error(`Error approving Hadith:, Details: ${detailedMessage}`);
-  } finally {
+      throw new Error(`خطأ في الموافقة على الحديث، التفاصيل: ${detailedMessage}`);
+    } finally {
     // Close resources
     if (gateway) {
       gateway.close();
@@ -409,7 +407,7 @@ const queryApprovalsByHadithId = async (hadithId, user) => {
     return { data };
   } catch (error) {
     console.error(`Error querying approvals by Hadith ID: ${error.message}`);
-    throw new Error('Failed to query approvals');
+    throw new Error('فشل في الاستعلام عن الموافقات');
   } finally {
     if (gateway) {
       gateway.close();
@@ -434,26 +432,10 @@ const queryHistoryById = async (id, user) => {
       gateway,
       client
     );
-    // let result = await contract.submitTransaction('getHadithHistory', id);
-    // result = JSON.parse(utf8Decoder.decode(result));
-    // console.log("result" , result)
-
-    // return {
-    //   hadithHistory: result.results?.map(elm => ({
-    //     txId: elm.TxId,
-    //     Action: elm.Action,
-    //     timeStamp: elm.Timestamp ? new Date(elm.Timestamp).getTime() : null,
-    //     DeletedBy: elm.DeletedBy,
-    //     ...elm.Value,
-    //   })) || [],
-    //   approvals: result.approvalResults?.map(elm => ({
-    //     ...elm.Record,
-    //     key: elm.Key,
-    //   })) || []
-    // };
     let result = await contract.submitTransaction('getHadithHistory', id);
     result = JSON.parse(utf8Decoder.decode(result));
     console.log("result" , result)
+
     return {
       hadithHistory: result.results?.map(elm => ({
         txId: elm.TxId,
@@ -463,14 +445,30 @@ const queryHistoryById = async (id, user) => {
         ...elm.Value,
       })) || [],
       approvals: result.approvalResults?.map(elm => ({
-        CreateAt: elm.CreateAt,
-        CreateBy: elm.CreateBy,
-        HadithId: elm.HadithId,
-        OrgId: elm.OrgId,
-        RegistrationType: elm.RegistrationType,
-        Status: elm.Status,
+        ...elm.Record,
+        key: elm.Key,
       })) || []
     };
+    // let result = await contract.submitTransaction('getHadithHistory', id);
+    // result = JSON.parse(utf8Decoder.decode(result));
+    // console.log("result" , result)
+    // return {
+    //   hadithHistory: result.results?.map(elm => ({
+    //     txId: elm.TxId,
+    //     Action: elm.Action,
+    //     timeStamp: elm.Timestamp ? new Date(elm.Timestamp).getTime() : null,
+    //     DeletedBy: elm.DeletedBy,
+    //     ...elm.Value,
+    //   })) || [],
+    //   approvals: result.approvalResults?.map(elm => ({
+    //     CreateAt: elm.CreateAt,
+    //     CreateBy: elm.CreateBy,
+    //     HadithId: elm.HadithId,
+    //     OrgId: elm.OrgId,
+    //     RegistrationType: elm.RegistrationType,
+    //     Status: elm.Status,
+    //   })) || []
+    // };
   } catch (error) {
     console.log(error);
   } finally {
@@ -501,46 +499,46 @@ const queryHadithById = async (id, user) => {
       
     // Decode the Uint8Array into a string
     result = JSON.parse(utf8Decoder.decode(result));
-    // let approvals = await queryApprovalsByHadithId(id , user)
-    // result.approvals = approvals?.data?.map(elm => elm.Record) || []
+    let approvals = await queryApprovalsByHadithId(id , user)
+    result.approvals = approvals?.data?.map(elm => elm.Record) || []
     
-    let approvals = await queryApprovalsByHadithId(id, user);
+    // let approvals = await queryApprovalsByHadithId(id, user);
     // Safely map `approvals.data` to get records
-    console.warn('approvals:', approvals);
+    // console.warn('approvals:', approvals);
 
-    // let approvalsRecords = approvals.data.map(elm => elm.Record).filter(record => record !== undefined);
-    // console.warn('approvalsRecords:', approvalsRecords);
+    let approvalsRecords = approvals.data.map(elm => elm.Record).filter(record => record !== undefined);
+    console.warn('approvalsRecords:', approvalsRecords);
    // Safely map `approvals.data` to get only defined records
 
 // Map the `approvals.data` to the desired format, and include only records with non-empty CreateAt and HadithId
 
- return {
-  hadithDetails: {
-    hadithId: result.hadithId,
-    Hadith: result.Hadith,
-    TheFirstNarrator: result.TheFirstNarrator,
-    ReportedBy: result.ReportedBy,
-    RulingOfTheReported: result.RulingOfTheReported,
-    PageOrNumber: result.PageOrNumber,
-    orgId: result.orgId,
-    registrationType: result.registrationType,
-    hadithStatus: result.hadithStatus,
-    createBy: result.createBy,
-    createAt: result.createAt,
-    previousHadithId: result.previousHadithId
-  },
-  approvals: approvals.data?.map(elm => ({
-    CreateAt: elm.CreateAt,
-    CreateBy: elm.CreateBy,
-    HadithId: elm.HadithId,
-    OrgId: elm.OrgId,
-    RegistrationType: elm.RegistrationType,
-    Status: elm.Status,
-  })) || []
-  };
+//  return {
+//   hadithDetails: {
+//     hadithId: result.hadithId,
+//     Hadith: result.Hadith,
+//     TheFirstNarrator: result.TheFirstNarrator,
+//     ReportedBy: result.ReportedBy,
+//     RulingOfTheReported: result.RulingOfTheReported,
+//     PageOrNumber: result.PageOrNumber,
+//     orgId: result.orgId,
+//     registrationType: result.registrationType,
+//     hadithStatus: result.hadithStatus,
+//     createBy: result.createBy,
+//     createAt: result.createAt,
+//     previousHadithId: result.previousHadithId
+//   },
+//   approvals: approvals.data?.map(elm => ({
+//     CreateAt: elm.CreateAt,
+//     CreateBy: elm.CreateBy,
+//     HadithId: elm.HadithId,
+//     OrgId: elm.OrgId,
+//     RegistrationType: elm.RegistrationType,
+//     Status: elm.Status,
+//   })) || []
+//   };
     // Add the results to approvals
-    // result.approvals = approvalsRecords;
-    // return result;
+    result.approvals = approvalsRecords;
+    return result;
   
   } catch (error) {
     // Extract and log detailed error message
@@ -552,7 +550,7 @@ const queryHadithById = async (id, user) => {
     // Remove "chaincode response 500," from the error message
       detailedMessage = detailedMessage.replace(/chaincode response 500,/i, '').trim();
       console.error(` ${errorMessage}, Details: ${detailedMessage}`);
-    throw new Error(`Details: ${detailedMessage}`);
+    throw new Error(`${detailedMessage}`);
   } finally {
     if (gateway) {
       gateway.close();
@@ -582,10 +580,10 @@ const getUserByEmail = async (email) => {
 const updateUserById = async (userId, updateBody) => {
   const user = await getUserById(userId);
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'المستخدم غير موجود');
   }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'البريد الإلكتروني مستخدم بالفعل');
   }
   Object.assign(user, updateBody);
   await user.save();
@@ -600,7 +598,7 @@ const updateUserById = async (userId, updateBody) => {
 const deleteUserById = async (userId) => {
   const user = await getUserById(userId);
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'المستخدم غير موجود');
   }
   await user.remove();
   return user;

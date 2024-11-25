@@ -142,14 +142,6 @@ services:
       - 5984:5984
     networks:
       - test
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '1.0'        # Limit the container to use at most 1 CPU core
-  #         memory: 2G         # Limit the container to use at most 2GB of memory
-  #       reservations:
-  #         cpus: '0.5'        # Ensure at least 0.5 CPU cores are reserved for this container
-  #         memory: 1G         # Ensure at least 1GB of memory is reserved for this container
 
 
   couchdb1:
@@ -162,36 +154,6 @@ services:
       - 6984:5984
     networks:
       - test
-  #   deploy:
-  #     resources:
-  #       limits:
-  #         cpus: '1.0'        # Limit the container to use at most 1 CPU core
-  #         memory: 2G         # Limit the container to use at most 2GB of memory
-  #       reservations:
-  #         cpus: '0.5'        # Ensure at least 0.5 CPU cores are reserved for this container
-  #         memory: 1G         # Ensure at least 1GB of memory is reserved for this container
-
-  # couchdb3:
-  #   container_name: couchdb3
-  #   image: couchdb:3.1.1
-  #   environment:
-  #     - COUCHDB_USER=admin
-  #     - COUCHDB_PASSWORD=adminpw
-  #   ports:
-  #     - 7984:5984
-  #   networks:
-  #     - test
-
-  # couchdb4:
-  #   container_name: couchdb4
-  #   image: couchdb:3.1.1
-  #   environment:
-  #     - COUCHDB_USER=admin
-  #     - COUCHDB_PASSWORD=adminpw
-  #   ports:
-  #     - 8984:5984
-  #   networks:
-  #     - test
 
 
   peer0.org1.example.com:
@@ -216,20 +178,7 @@ services:
       # Exposed for discovery Service
       - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.org1.example.com:7051
 
-      # - CORE_CHAINCODE_MODE=net
-      # - CORE_CHAINCODE_EXECUTETIMEOUT=3000000s
-      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9444
-
-      # - CORE_METRICS_PROVIDER=prometheus #mudanca johann
-      # - CORE_PEER_DISCOVERY_ENABLED=true
-      # - CORE_PEER_DISCOVERY_ORGMEMBERSALLOWEDACCESS=true  
-      # - CORE_PEER_LIMITS_CONCURRENCY_ENDORSERSERVICE=10000 #mudanca johann
-      # - CORE_PEER_LIMITS_CONCURRENCY_DELIVERSERVICE=10000 #mudanca johann
-
-      # - CORE_PEER_GOSSIP_USELEADERELECTION=true
-      # - CORE_PEER_GOSSIP_ORGLEADER=false
-      # - CORE_PEER_GOSSIP_ENDPOINT=peer0.org1.example.com:7051
-
+    
 
       # - CORE_LEDGER_STATE_STATEDATABASE=goleveldb 
       - CORE_LEDGER_STATE_STATEDATABASE=CouchDB 
@@ -239,31 +188,18 @@ services:
 
       # Enable TLS
       - CORE_PEER_TLS_ENABLED=true
-      # - CORE_PEER_PROFILE_ENABLED=false
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
 
-      # - CORE_PEER_TLS_ENABLED=true
-      # - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto/peer/tls/server.crt
-      # - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto/peer/tls/server.key
-      # - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto/peer/tls/ca.crt
-      # - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto/peer/msp
-
-       # Add concurrency limits
-      # - CORE_PEER_LIMITS_CONCURRENCY_GATEWAYSERVICE=6000
+  
+       # Add  limits
+      - CORE_PEER_LIMITS_CONCURRENCY_GATEWAYSERVICE=6000
       # - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       # - CORE_PEER_EXECUTE_TIMEOUT=300s
       # - CORE_PEER_KEEPALIVE_INTERVAL=60s
 
-
-
-    #   - CORE_METRICS_PROVIDER=prometheus
-    #   - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0org1"}
-    #   - CORE_CHAINCODE_EXECUTETIMEOUT=300s
-    # working_dir: /root
-    # command: peer node start
     depends_on:
       - couchdb0
     ports:
@@ -271,20 +207,17 @@ services:
       # - 9444:9444
     volumes:
       - ./channel/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com:/etc/hyperledger/fabric
-      # - ./channel/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/msp:/etc/hyperledger/crypto/peer/msp
-      # - ./channel/crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls:/etc/hyperledger/crypto/peer/tls
-      - /var/run/:/host/var/run/
-      # - /var/bashayer/peer0-org1:/var/hyperledger/production
+       - /var/run/:/host/var/run/
     networks:
       - test
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '2.0'       # Limit the container to use at most 2 CPUs
-    #       memory: '4G'      # Limit the container to use at most 4GB of memory
-    #     reservations:
-    #       cpus: '1.0'       # Reserve 1 CPU for the container
-    #       memory: '2G'      # Reserve 2GB of memory for the container
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'       # Limit the container to use at most 2 CPUs
+          memory: '4G'      # Limit the container to use at most 4GB of memory
+        reservations:
+          cpus: '1.0'       # Reserve 1 CPU for the container
+          memory: '2G'      # Reserve 2GB of memory for the container
 
   # peer1.org1.example.com:
   #   container_name: peer1.org1.example.com
@@ -407,41 +340,22 @@ services:
       - CORE_LEDGER_STATE_COUCHDBCONFIG_USERNAME=admin
       - CORE_LEDGER_STATE_COUCHDBCONFIG_PASSWORD=adminpw
 
-      # - CORE_CHAINCODE_MODE=net
-      # # - CORE_CHAINCODE_EXECUTETIMEOUT=3000000s
-      # - CORE_OPERATIONS_LISTENADDRESS=0.0.0.0:9448
-      # - CORE_METRICS_PROVIDER=prometheus #mudanca johann
-      # - CORE_PEER_DISCOVERY_ENABLED=true
-      # - CORE_PEER_DISCOVERY_ORGMEMBERSALLOWEDACCESS=true
-      # - CORE_PEER_LIMITS_CONCURRENCY_ENDORSERSERVICE=10000 #mudanca johann
-      # - CORE_PEER_LIMITS_CONCURRENCY_DELIVERSERVICE=10000 #mudanca johann
 
        # Enable TLS
       - CORE_PEER_TLS_ENABLED=true
-      # - CORE_PEER_PROFILE_ENABLED=false
       - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
       - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
       - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
       - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
 
-      # - CORE_PEER_TLS_ENABLED=true
-      # - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/crypto/peer/tls/server.crt
-      # - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/crypto/peer/tls/server.key
-      # - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/crypto/peer/tls/ca.crt
-      # - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/crypto/peer/msp
 
-      # - CORE_PEER_LIMITS_CONCURRENCY_GATEWAYSERVICE=6000
+      - CORE_PEER_LIMITS_CONCURRENCY_GATEWAYSERVICE=6000
       # - CORE_CHAINCODE_EXECUTETIMEOUT=300s
       # - CORE_PEER_EXECUTE_TIMEOUT=300s
       # - CORE_PEER_KEEPALIVE_INTERVAL=60s
 
 
-    #   - CORE_PEER_PROFILE_ENABLED=false
-    #   - CORE_METRICS_PROVIDER=prometheus
-    #   - CHAINCODE_AS_A_SERVICE_BUILDER_CONFIG={"peername":"peer0org2"}
-    #   - CORE_CHAINCODE_EXECUTETIMEOUT=300s
-    # working_dir: /root
-    # command: peer node start
+
     depends_on:
       - couchdb1
     ports:
@@ -449,20 +363,17 @@ services:
       # - 9448:9448
     volumes:
       - ./channel/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com:/etc/hyperledger/fabric
-      # - ./channel/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/msp:/etc/hyperledger/crypto/peer/msp
-      # - ./channel/crypto-config/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls:/etc/hyperledger/crypto/peer/tls
       - /var/run/:/host/var/run/
-      # - /var/bashayer/peer0-org2:/var/hyperledger/production
     networks:
       - test
-    # deploy:
-    #   resources:
-    #     limits:
-    #       cpus: '2.0'       # Limit the container to use at most 2 CPUs
-    #       memory: '4G'      # Limit the container to use at most 4GB of memory
-    #     reservations:
-    #       cpus: '1.0'       # Reserve 1 CPU for the container
-    #       memory: '2G'      # Reserve 2GB of memory for the container
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'       # Limit the container to use at most 2 CPUs
+          memory: '4G'      # Limit the container to use at most 4GB of memory
+        reservations:
+          cpus: '1.0'       # Reserve 1 CPU for the container
+          memory: '2G'      # Reserve 2GB of memory for the container
 
   # peer1.org2.example.com:
   #   container_name: peer1.org2.example.com

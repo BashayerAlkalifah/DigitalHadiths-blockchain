@@ -17,8 +17,8 @@ const updateUserStatus = catchAsync(async (req, res) => {
   const user = await userService.updateUserStatus(id, status);
   res
     .status(httpStatus.OK)
-    .send(getSuccessResponse(httpStatus.OK, `User status updated successfully, Status: ${user.status}`, ''));
-});
+    .send(getSuccessResponse(httpStatus.OK, 'تم تفعيل حساب المستخدم', ''));
+  });
 
 const getUsers = catchAsync(async (req, res) => {
   const { page, size } = req.query;
@@ -33,7 +33,7 @@ const getUsers = catchAsync(async (req, res) => {
   console.log('---optipns is---', options);
 
   const result = await userService.queryUsers(filter, options);
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Users fetched successfully', result));
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم جلب المستخدمين بنجاح', result));
 });
 
 const getUser = catchAsync(async (req, res) => {
@@ -41,7 +41,7 @@ const getUser = catchAsync(async (req, res) => {
   if (!user) {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'User fetched successfully', user));
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم جلب المستخدم بنجاح', user));
 });
 
 const updateUser = catchAsync(async (req, res) => {

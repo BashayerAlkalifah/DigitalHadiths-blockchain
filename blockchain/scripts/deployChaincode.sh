@@ -1,28 +1,5 @@
 . envVar.sh
 . utils.sh
-# export PATH=/Users/bshayralkhlyfh/Desktop/t/H/bin
-# export PATH=/Users/bshayralkhlyfh/Desktop/t/H/bin:$PATH
-
-# Ensure the custom binary directory is in the PATH
-
-# DIRECTORY=/Users/bshayralkhlyfh/Desktop/t/H/bin:$PATH
-
-# Ensure the custom binary directory is in the PATH
-export PATH=/Users/bshayralkhlyfh/Desktop/t/H/bin:$PATH
-
-# Set GOROOT to the directory where Go is installed
-export GOROOT=/usr/local/opt/go/libexec
-
-# Add Go binary directory to PATH
-export PATH=$PATH:$GOROOT/bin
-
-# Set GOPATH to your Go workspace
-export GOPATH=/Users/bshayralkhlyfh/go
-
-# Add GOPATH binary directory to PATH
-export PATH=$PATH:$GOPATH/bin
-
-
 
 
 presetup() {
@@ -36,17 +13,15 @@ presetup() {
 #presetup
 
 CHANNEL_NAME="hadithchannel"
-CC_RUNTIME_LANGUAGE="golang" #golang #node
-VERSION="10"
-SEQUENCE=10
-CC_SRC_PATH="../artifacts/chaincode/golang"
+CC_RUNTIME_LANGUAGE="node" #golang #node
+VERSION="1"
+SEQUENCE=1
+CC_SRC_PATH="../artifacts/chaincode/javascript"
 CC_NAME="HadithChain"
 CC_POLICY="AND('Org1MSP.peer','Org2MSP.peer')"
 
 
 packageChaincode() {
-    # export PATH=$PATH:/Users/bshayralkhlyfh/go/bin
-    # rm -rf ${CC_NAME}.tar.gz
     setGlobals 1
     peer lifecycle chaincode package ${CC_NAME}.tar.gz \
         --path ${CC_SRC_PATH} --lang ${CC_RUNTIME_LANGUAGE} \
@@ -82,10 +57,6 @@ queryInstalled() {
     echo PackageID is ${PACKAGE_ID}
     echo "===================== Query installed successful on peer0.org1 on channel ===================== "
 }
-
-#queryInstalled
-# --collections-config ./../artifacts/private-data/collections_config.json \
-#         --signature-policy "OR('Org1MSP.member','Org2MSP.member')" \
 
 approveForMyOrg1() {
     setGlobals 1
@@ -171,13 +142,9 @@ chaincodeInvoke() {
         -C $CHANNEL_NAME -n ${CC_NAME}  \
         --peerAddresses localhost:7051 --tlsRootCertFiles $PEER0_ORG1_CA \
         --peerAddresses localhost:9051 --tlsRootCertFiles $PEER0_ORG2_CA \
-        -c '{"function": "queryApprovalsByHadithId","Args":["963dea06e450d696860e37a56edbb4a6569e9ee7f5a5df6b2196cc9fbae583a0"]}'
+        -c '{"function": "HadithExists","Args":["703fbf3c4ab4a17cdb351c0f182a324f68cf07a30f0e330f905d6b6fc5e443ed"]}'
 
 }
-#  chaincodeInvoke
-#http://localhost:5984/_utils/
-
-
 
 
 chaincodeQuery() {

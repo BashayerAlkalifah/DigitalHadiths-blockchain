@@ -10,7 +10,7 @@ const { registerUser } = require('../utils/blockchainUtils');
  */
 const createUser = async (userBody) => {
   if (await User.isEmailTaken(userBody.email)) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'البريد الإلكتروني موجود بالفعل');
   }
   return User.create(userBody);
 };
@@ -58,7 +58,7 @@ const updateUserById = async (userId, updateBody) => {
     throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
   }
   if (updateBody.email && (await User.isEmailTaken(updateBody.email, userId))) {
-    throw new ApiError(httpStatus.BAD_REQUEST, 'Email already taken');
+    throw new ApiError(httpStatus.BAD_REQUEST, 'البريد الإلكتروني موجود بالفعل');
   }
   Object.assign(user, updateBody);
   await user.save();
@@ -75,7 +75,7 @@ const updateUserStatus = async (userId, status) => {
   const user = await getUserById(userId);
  
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'المستخدم غير موجود');
   }
 
   try {
@@ -103,7 +103,7 @@ const updateUserStatus = async (userId, status) => {
 const deleteUserById = async (userId) => {
   const user = await getUserById(userId);
   if (!user) {
-    throw new ApiError(httpStatus.NOT_FOUND, 'User not found');
+    throw new ApiError(httpStatus.NOT_FOUND, 'لم يتم العثور على المستخدم');
   }
   await user.remove();
   return user;

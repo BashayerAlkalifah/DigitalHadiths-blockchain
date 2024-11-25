@@ -5,14 +5,14 @@ const { getSuccessResponse } = require('../utils/Response');
 
 const register = catchAsync(async (req, res) => {
   const user = await userService.createUser(req.body);
-  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED,  'User Registered successfully, please ask admin to activate account',user))
+  res.status(httpStatus.CREATED).send(getSuccessResponse(httpStatus.CREATED, 'تم تسجيل المستخدم بنجاح، يرجى طلب من الإدارة تفعيل الحساب', user));
 });
 
 const login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
   const user = await authService.loginUserWithEmailAndPassword(email, password);
   const token = await tokenService.generateAuthTokens(user);
-  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'Successfully Logged in', token))
+  res.status(httpStatus.OK).send(getSuccessResponse(httpStatus.OK, 'تم تسجيل الدخول بنجاح', token));
 });
 
 const logout = catchAsync(async (req, res) => {

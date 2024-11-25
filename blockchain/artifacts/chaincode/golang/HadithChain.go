@@ -32,27 +32,28 @@ type Hadith struct {
 
 }
 
+
+type Document struct {
+    Name string `json:"name"`
+    URL  string `json:"url"`
+}
+
 type HadithRecord struct {
-	Hadith              string   `json:"Hadith"`
-	PageOrNumber        string   `json:"PageOrNumber"`
-	ReportedBy          string   `json:"ReportedBy"`
-	RulingOfTheReported string   `json:"RulingOfTheReported"`
-	Source              []string `json:"Source"`
-	TheFirstNarrator    string   `json:"TheFirstNarrator"`
-	CreateAt            string   `json:"createAt"`
-	CreateBy            string   `json:"createBy"`
-	Document            struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"document"`
-	HadithId         string `json:"hadithId"`
-	HadithStatus     string `json:"hadithStatus"`
-	ID               string `json:"id"`
-	OrgId            int    `json:"orgId"`
-	RegistrationType string `json:"registrationType"`
-	Status           struct {
-		Status string `json:"status"`
-	} `json:"status"`
+    CreateAt            string    `json:"CreateAt"`
+    CreateBy            string    `json:"CreateBy"`
+    Document            Document  `json:"Document"`
+    Hadith              string    `json:"Hadith"`
+    HadithId            string    `json:"HadithId"`
+    HadithStatus        string    `json:"HadithStatus"`
+    ID                  string    `json:"ID"`
+    OrgId               int       `json:"OrgId"`
+    PageOrNumber        string    `json:"PageOrNumber"`
+    RegistrationType    string    `json:"RegistrationType"`
+    ReportedBy          string    `json:"ReportedBy"`
+    RulingOfTheReported string    `json:"RulingOfTheReported"`
+    Source              []string  `json:"Source"`
+    Status              string    `json:"Status"`
+    TheFirstNarrator    string    `json:"TheFirstNarrator"`
 }
 
 type DeleteMetadata struct {
@@ -82,12 +83,12 @@ type JSONResult struct {
 
 func (hc *HadithContract) AddHadith(ctx contractapi.TransactionContextInterface, hadithData string) (string, error) {
 	// Check client identity
-    cid := ctx.GetClientIdentity()
-    scholarErr := cid.AssertAttributeValue("registrationType", "scholar")
-    studentErr := cid.AssertAttributeValue("registrationType", "StudentOfHadith")   
-    if scholarErr != nil && studentErr != nil {
-        return "", fmt.Errorf("you are not authorized to perform this operation")
-    }
+    // cid := ctx.GetClientIdentity()
+    // scholarErr := cid.AssertAttributeValue("registrationType", "scholar")
+    // studentErr := cid.AssertAttributeValue("registrationType", "StudentOfHadith")   
+    // if scholarErr != nil && studentErr != nil {
+    //     return "", fmt.Errorf("you are not authorized to perform this operation")
+    // }
     
 
     // Unmarshal hadithData into Hadith struct
@@ -117,9 +118,9 @@ func (hc *HadithContract) AddHadith(ctx contractapi.TransactionContextInterface,
 func (hc *HadithContract) ApproveHadith(ctx contractapi.TransactionContextInterface, hadithData string) (string, error) {
     
 	// Check if the client has the 'scholar' role.
-	if err := hc.verifyScholarRole(ctx); err != nil {
-		return "", fmt.Errorf("you are not authorized to perform this operation")
-	}
+	// if err := hc.verifyScholarRole(ctx); err != nil {
+	// 	return "", fmt.Errorf("you are not authorized to perform this operation")
+	// }
 
 	// Parse the input Hadith data
     var hadith map[string]interface{}
@@ -161,43 +162,84 @@ func (hc *HadithContract) ApproveHadith(ctx contractapi.TransactionContextInterf
     return txID, nil
 }
 
+
 func (hc *HadithContract) ValidateApprovals(ctx contractapi.TransactionContextInterface, hadithId, userStr string) (string, error) {
+	// Log the start of the validation process
+	fmt.Println("Entering ValidateApprovals function")
+	fmt.Printf("Starting validation for Hadith ID: %s\n", hadithId)
 
-	// Check if the client has the 'scholar' role.
-	if err := hc.verifyScholarRole(ctx); err != nil {
-		return "", fmt.Errorf("you are not authorized to perform this operation")
+	// Retrieve the Hadith by ID
+	hadith, err := hc.GetHadithByID(ctx, hadithId)
+	if err != nil {
+		fmt.Printf("Failed to retrieve Hadith with ID: %s. Error: %v\n", hadithId, err)
+		return "", err
 	}
-    hadith, err := hc.GetHadithByID(ctx, hadithId)
-    if err != nil {
-        return "", err
-    }
+	fmt.Printf("Retrieved Hadith: %+v\n", hadith)
 
-    if err := hc.validateHadithStatus(hadith); err != nil {
-        return "", err
-    }
+	// Check if the Hadith is eligible for approval
+	if hadith.PreviousHadithID != "" {
+		fmt.Printf("Operation failed: Hadith with ID %s is not a new submission.\n", hadithId)
+		return "", fmt.Errorf("operation failed: This operation is intended for approving new Hadith submissions only.")
+	} else if hadith.HadithStatus == "active" {
+		fmt.Printf("Operation failed: Hadith with ID %s is already active.\n", hadithId)
+		return "", fmt.Errorf("operation failed: The Hadith is already active.")
+	}
 
-    var user map[string]string
-    if err := json.Unmarshal([]byte(userStr), &user); err != nil {
-        return "", fmt.Errorf("failed to unmarshal user: %v", err)
-    }
+	// Unmarshal the user information
+	var user map[string]string
+	err = json.Unmarshal([]byte(userStr), &user)
+	if err != nil {
+		fmt.Printf("Failed to unmarshal user information: %s. Error: %v\n", userStr, err)
+		return "", fmt.Errorf("failed to unmarshal user: %v", err)
+	}
+	fmt.Printf("Unmarshaled user info: %+v\n", user)
 
-    scholarCount, err := hc.countScholarApprovals(ctx, hadithId, user)
-    if err != nil {
-        return "", err
-    }
+	// Query for Hadith approvals using the new method
+	approvals, err := hc.QueryApprovalsByHadithId(ctx, hadithId)
+	if err != nil {
+		fmt.Printf("Failed to query approvals for Hadith ID: %s. Error: %v\n", hadithId, err)
+		return "", fmt.Errorf("failed to query hadith approvals: %v", err)
+	}
 
-    if scholarCount > 0 {
-        return AGREEMENT_STATUS.ACTIVE, nil
-    }
+	scholarCount := 0
+	fmt.Printf("Processing approvals for Hadith ID: %s\n", hadithId)
 
-    return AGREEMENT_STATUS.INPROGRESS, nil
+	for _, record := range approvals {
+		orgIDStr, ok := record["OrgId"].(string)
+		if !ok {
+			fmt.Printf("Failed to extract OrgId from record: %+v\n", record)
+			continue
+		}
+
+		// Check if the user's organization has already approved this Hadith
+		if record["RegistrationType"] == user["registrationType"] && orgIDStr == user["orgId"] {
+			fmt.Printf("Hadith with ID %s has already been approved by the user's institution (Org ID: %s).\n", hadithId, orgIDStr)
+			return "", fmt.Errorf("This Hadith has already been marked as approved by your institution.")
+		}
+
+		// Count approvals from scholars
+		if record["RegistrationType"] == "scholar" {
+			scholarCount++
+		}
+		fmt.Printf("Current scholar approval count: %d\n", scholarCount)
+	}
+
+	// Determine the final approval status
+	if scholarCount > 0 {
+		fmt.Printf("Hadith ID: %s has sufficient scholar approvals. Status: ACTIVE\n", hadithId)
+		return AGREEMENT_STATUS.ACTIVE, nil
+	}
+
+	fmt.Printf("Hadith ID: %s is still in progress. Status: INPROGRESS\n", hadithId)
+	return AGREEMENT_STATUS.INPROGRESS, nil
 }
+
 // DeleteHadith deletes a hadith and associated approvals from the blockchain.
 func (hc *HadithContract) DeleteHadith(ctx contractapi.TransactionContextInterface, id, deletedBy string, active string) (string, error) {
 	// Check if the client has the 'scholar' role.
-	if err := hc.verifyScholarRole(ctx); err != nil {
-		return "", fmt.Errorf("you are not authorized to perform this operation")
-	}
+	// if err := hc.verifyScholarRole(ctx); err != nil {
+	// 	return "", fmt.Errorf("you are not authorized to perform this operation")
+	// }
 
 	// Retrieve the hadith to be deleted.
 	hadith, err := hc.GetHadithByID(ctx, id)
@@ -225,9 +267,9 @@ func (hc *HadithContract) DeleteHadith(ctx contractapi.TransactionContextInterfa
 // UpdateHadith updates an existing hadith on the blockchain.
 func (hc *HadithContract) UpdateHadith(ctx contractapi.TransactionContextInterface, hadithData string) (string, error) {
 	// Check if the client has the 'scholar' role.
-	if err := hc.verifyScholarRole(ctx); err != nil {
-		return "", fmt.Errorf("you are not authorized to perform this operation")
-	}
+	// if err := hc.verifyScholarRole(ctx); err != nil {
+	// 	return "", fmt.Errorf("you are not authorized to perform this operation")
+	// }
 
 	// Unmarshal the hadith data from JSON.
 	var hadith Hadith
@@ -263,9 +305,9 @@ func (hc *HadithContract) UpdateHadith(ctx contractapi.TransactionContextInterfa
 }
 func (hc *HadithContract) ApproveAndRejectForUpdateHadith(ctx contractapi.TransactionContextInterface, hadithData string) (string, error) {
 	// Check if the client is a scholar
-	if err := hc.verifyScholarRole(ctx); err != nil {
-		return "", fmt.Errorf("you are not authorized to perform this operation")
-	}
+	// if err := hc.verifyScholarRole(ctx); err != nil {
+	// 	return "", fmt.Errorf("you are not authorized to perform this operation")
+	// }
 
 	// Parse the input Hadith data
 	var hadith map[string]interface{}
@@ -329,9 +371,9 @@ func (hc *HadithContract) ApproveAndRejectForUpdateHadith(ctx contractapi.Transa
 
 func (hc *HadithContract) ValidateHadithUpdateApprovalAndRejection(ctx contractapi.TransactionContextInterface, hadithId, statusStr, userStr string) (string, error) {
 	// Check if the client is a scholar
-	if err := hc.verifyScholarRole(ctx); err != nil {
-		return "", fmt.Errorf("you are not authorized to perform this operation")
-	}
+	// if err := hc.verifyScholarRole(ctx); err != nil {
+	// 	return "", fmt.Errorf("you are not authorized to perform this operation")
+	// }
 
     // Retrieve the Hadith by ID
     hadith, err := hc.GetHadithByID(ctx, hadithId)
@@ -357,6 +399,8 @@ func (hc *HadithContract) ValidateHadithUpdateApprovalAndRejection(ctx contracta
     email := user["email"].(string)
     userOrgId := user["orgId"].(string)
     userStatus := status["status"].(string)
+
+	fmt.Printf("Validating approvals for HadithId: %s and user: %v\n", hadithId, user)
 
     // Query for Hadith approvals using the new function
     approvals, err := hc.QueryApprovalsByHadithId(ctx, hadithId)
@@ -428,57 +472,64 @@ func (hc *HadithContract) QueryApprovalsByHadithId(ctx contractapi.TransactionCo
 
 	return results, nil
 }
-// getAllResultsFromIterator processes an iterator and returns all results as a list of maps
+
 func (hc *HadithContract) getAllResultsFromIterator(resultsIterator shim.StateQueryIteratorInterface) ([]map[string]interface{}, error) {
-	var results []map[string]interface{}
+    var results []map[string]interface{}
 
-	for resultsIterator.HasNext() {
-		queryResponse, err := resultsIterator.Next()
-		if err != nil {
-			return nil, fmt.Errorf("failed to get next result: %v", err)
-		}
+    // Iterate over the results from the iterator
+    for resultsIterator.HasNext() {
+        queryResponse, err := resultsIterator.Next()
+        if err != nil {
+            return nil, fmt.Errorf("failed to get next result: %v", err)
+        }
 
-		// Log the raw JSON response
-		fmt.Println("Raw Query Response:", string(queryResponse.Value))
+        // Log the raw JSON response
+        fmt.Println("Raw Query Response:", string(queryResponse.Value))
 
-		var hadith HadithRecord
-		if err := json.Unmarshal(queryResponse.Value, &hadith); err != nil {
-			fmt.Printf("Error unmarshalling: %v\n", err)
-			continue
-		}
+        var hadith HadithRecord
+        // Unmarshal the JSON data into HadithRecord struct
+        if err := json.Unmarshal(queryResponse.Value, &hadith); err != nil {
+            fmt.Printf("Error unmarshalling: %v\n", err)
+            continue
+        }
 
-		// Log the populated hadith struct
-		fmt.Printf("Populated Hadith: %+v\n", hadith)
+        // Log the populated hadith struct
+        fmt.Printf("Populated Hadith: %+v\n", hadith)
 
-		// Skip appending if CreateBy is empty
-		if hadith.CreateBy == "" {
-			fmt.Println("Skipping record due to empty CreateBy")
-			continue
-		}
+        // Skip appending if CreateBy is empty
+        if hadith.CreateBy == "" {
+            fmt.Println("Skipping record due to empty CreateBy")
+            continue
+        }
 
-		record := map[string]interface{}{
-			"Hadith":             hadith.Hadith,
-			"ReportedBy":         hadith.ReportedBy,
-			"Status":             hadith.Status.Status,
-			"CreateAt":           hadith.CreateAt,
-			"CreateBy":           hadith.CreateBy,
-			"HadithId":           hadith.HadithId,
-			"HadithStatus":       hadith.HadithStatus,
-			"PageOrNumber":       hadith.PageOrNumber,
-			"RulingOfTheReported": hadith.RulingOfTheReported,
-			"Source":             hadith.Source,
-			"TheFirstNarrator":   hadith.TheFirstNarrator,
-			"Document":           hadith.Document,
-			"ID":                 hadith.ID,
-			"OrgId":              hadith.OrgId,
-			"RegistrationType":   hadith.RegistrationType,
-		}
+        // Create a map of the relevant fields from the HadithRecord
+        record := map[string]interface{}{
+            "Hadith":              hadith.Hadith,
+            "ReportedBy":          hadith.ReportedBy,
+            "Status":              hadith.Status,  // No nested Status
+            "CreateAt":            hadith.CreateAt,
+            "CreateBy":            hadith.CreateBy,
+            "HadithId":            hadith.HadithId,
+            "HadithStatus":        hadith.HadithStatus,
+            "PageOrNumber":        hadith.PageOrNumber,
+            "RulingOfTheReported": hadith.RulingOfTheReported,
+            "Source":              hadith.Source,
+            "TheFirstNarrator":    hadith.TheFirstNarrator,
+            "Document": map[string]interface{}{
+                "name": hadith.Document.Name,
+                "url":  hadith.Document.URL,
+            },
+            "ID":                 hadith.ID,
+            "OrgId":              hadith.OrgId,
+            "RegistrationType":   hadith.RegistrationType,
+        }
 
-		fmt.Printf("Fetched record: %+v\n", record)
-		results = append(results, record)
-	}
+        // Log the fetched record
+        fmt.Printf("Fetched record: %+v\n", record)
+        results = append(results, record)
+    }
 
-	return results, nil
+    return results, nil
 }
 
 
@@ -590,6 +641,58 @@ func (hc *HadithContract) GetDataWithPagination(ctx contractapi.TransactionConte
     return finalData, nil
 }
 
+func (hc *HadithContract) GetData(ctx contractapi.TransactionContextInterface) ([]map[string]interface{}, error) {
+    // Fetch the state by range
+    iterator, err := ctx.GetStub().GetStateByRange("", "")
+    if err != nil {
+        return nil, fmt.Errorf("failed to get state by range: %v", err)
+    }
+    defer iterator.Close()
+
+    var results []map[string]interface{}
+
+    // Iterate over the results
+    for iterator.HasNext() {
+        queryResponse, err := iterator.Next()
+        if err != nil {
+            return nil, fmt.Errorf("failed to get next state: %v", err)
+        }
+
+        var hadith HadithRecord
+        // Unmarshal the response into the HadithRecord struct
+        if err := json.Unmarshal(queryResponse.Value, &hadith); err != nil {
+            // If unmarshal fails, skip this record
+            continue
+        }
+
+        // Filter records with HadithStatus as "INPROGRESS"
+        if hadith.HadithStatus == "INPROGRESS" {
+            record := map[string]interface{}{
+                "Hadith":              hadith.Hadith,
+                "ReportedBy":          hadith.ReportedBy,
+                "Status":              hadith.Status,  // No nested Status field
+                "CreateAt":            hadith.CreateAt,
+                "CreateBy":            hadith.CreateBy,
+                "HadithId":            hadith.HadithId,
+                "HadithStatus":        hadith.HadithStatus,
+                "PageOrNumber":        hadith.PageOrNumber,
+                "RulingOfTheReported": hadith.RulingOfTheReported,
+                "Source":              hadith.Source,
+                "TheFirstNarrator":    hadith.TheFirstNarrator,
+                "Document": map[string]interface{}{
+                    "name": hadith.Document.Name,
+                    "url":  hadith.Document.URL,
+                },
+                "ID":                 hadith.ID,
+                "OrgId":              hadith.OrgId,
+                "RegistrationType":   hadith.RegistrationType,
+            }
+            results = append(results, record)
+        }
+    }
+
+    return results, nil
+}
 
 
                                             // Helper functions
@@ -693,47 +796,7 @@ func (hc *HadithContract) validateHadithStatusForUpdateHadith(hadith *Hadith) er
 
     return nil
 }
-// Helper function to  counts the number of scholar approvals for a Hadith
-func (hc *HadithContract) countScholarApprovals(ctx contractapi.TransactionContextInterface, hadithId string, user map[string]string) (int, error) {
-    queryString := fmt.Sprintf(`{"selector":{"hadithId":"%s"}}`, hadithId)
-    iterator, err := ctx.GetStub().GetQueryResult(queryString)
-    if err != nil {
-        return 0, fmt.Errorf("failed to query hadith approvals: %v", err)
-    }
-    defer iterator.Close()
 
-    scholarCount := 0
-
-    for iterator.HasNext() {
-        result, err := iterator.Next()
-        if err != nil {
-            return 0, fmt.Errorf("failed to iterate approvals: %v", err)
-        }
-
-        var approval Hadith
-        if err := json.Unmarshal(result.Value, &approval); err != nil {
-            return 0, fmt.Errorf("failed to unmarshal approval: %v", err)
-        }
-
-        // Check if the Hadith is already approved by the user's institution
-        if approval.RegistrationType == user["registrationType"] && fmt.Sprintf("%v", approval.OrgID) == user["orgId"] {
-            return 0, fmt.Errorf("this Hadith has already been marked as approved by your institution")
-        }
-
-        // Count scholars' approvals
-        if approval.RegistrationType == "scholar" {
-            scholarCount++
-        }
-    }
-
-    return scholarCount, nil
-}
-
-// Helper function to verify scholar role.
-func (hc *HadithContract) verifyScholarRole(ctx contractapi.TransactionContextInterface) error {
-	cid := ctx.GetClientIdentity()
-	return cid.AssertAttributeValue("registrationType", "scholar")
-}
 // Helper function to validate deletion conditions.
 func (hc *HadithContract) validateDeletionConditions(hadith *Hadith, active string) error {
 	if hadith.PreviousHadithID != "" && active == "true" {
